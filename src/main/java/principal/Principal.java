@@ -1,9 +1,7 @@
 package principal;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Principal {
 
@@ -11,23 +9,19 @@ public class Principal {
 		// TODO Auto-generated method stub
 		Noticia noticia = new Noticia();
 		 String urlPrincipal = "https://www.infomoney.com.br/mercados/";
-		 Document document = null;
 		 
-		 try {			
-			document = Jsoup.connect(urlPrincipal).data("action","infinite_scroll")
-					.data("page", String.valueOf(document))
-					.data("order","DESC")
-					.userAgent("Mozilla")
-					.post();
-		//	 document = Jsoup.connect(urlPrincipal).get();
-			
-			Elements elements = document.select("div[class=row py-3 item]");
-			
-			for(Element element : elements) {
-				String url = element.select("a").attr("href");
-				noticia.retiraInformacoes(url);
-				System.out.println(noticia);
-			}
+		 try {					 
+			   List<String> urlsUltimasNoticiasMercados = new ArrayList<>();
+	            urlsUltimasNoticiasMercados.addAll(Noticia.getUrlsUltimasNoticiasMercados(1, urlPrincipal));
+	            urlsUltimasNoticiasMercados.addAll(Noticia.getUrlsUltimasNoticiasMercados(2, urlPrincipal));
+	            urlsUltimasNoticiasMercados.addAll(Noticia.getUrlsUltimasNoticiasMercados(3, urlPrincipal));
+
+	            System.out.println("Últimas Notícias");
+	            for (String url : urlsUltimasNoticiasMercados) {
+	                noticia.retiraInformacoes(url);
+	                System.out.println(noticia.toString());
+	            }
+			 
 		} catch (Exception e) {
 			// TODO: handle exception
 		}

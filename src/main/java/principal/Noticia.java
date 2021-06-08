@@ -1,15 +1,24 @@
 package principal;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+
+import kong.unirest.HttpResponse;
+import kong.unirest.JsonNode;
+import kong.unirest.Unirest;
+import kong.unirest.json.JSONObject;
 
 public class Noticia {
 	private String url ;
 	private String titulo;
 	private String subtitulo;
 	private String autor;
-	private String dataPublicacao;
+	private LocalDateTime dataPublicacao;
 	private String conteudo;
 	
 	public void retiraInformacoes(String url){
@@ -17,18 +26,27 @@ public class Noticia {
 		Document document = null;
 		try {
 			document = Jsoup.connect(url).get();
-			
 			this.titulo = retiraTitulo(document, "div[class=col-md-10 col-xl-8 m-auto]");
 			this.subtitulo = retiraSubTitulo(document, "p[class=article-lead]");
 			this.autor = retiraAutor(document, "span[class='author-name']");
 			this.dataPublicacao = retiraDataPublicacao(document, "time");
 			this.conteudo = retiraConteudo(document, "div[class=col-md-9 col-lg-8 col-xl-6  m-sm-auto m-lg-0 article-content]");
-			
 		} catch (Exception e) {
 			
 		}
 	}
 	
+	public Noticia(String url, String titulo, String subtitulo, String autor, LocalDateTime dataPublicacao,
+			String conteudo) {
+		super();
+		this.url = url;
+		this.titulo = titulo;
+		this.subtitulo = subtitulo;
+		this.autor = autor;
+		this.dataPublicacao = dataPublicacao;
+		this.conteudo = conteudo;
+	}
+
 	//Métodos
     public String retiraTitulo(Document document, String caminhoTitulo) {
     	Element elementTitulo = document.select(caminhoTitulo).first();
@@ -48,11 +66,10 @@ public class Noticia {
 		
 		return autor;
     }
-    public String retiraDataPublicacao(Document document, String caminhoDataPublicacao) {
+    public static LocalDateTime retiraDataPublicacao(Document document, String caminhoDataPublicacao) {
     	Element elementDataPublicacao = document.select(caminhoDataPublicacao).first();
 		String dataPublicacao = elementDataPublicacao.attr("datetime");
-		
-		return dataPublicacao;
+		return LocalDateTime.parse(dataPublicacao, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
     public String retiraConteudo(Document document, String caminhoConteudo) {
     	Element elementConteudo = document.select(caminhoConteudo).first();
@@ -60,7 +77,17 @@ public class Noticia {
 		
 		return conteudo;
     }
-	
+    public static List<String> getUrlsUltimasNoticiasMercados(int pagina, String urlPrincipal) {
+        HttpResponse<JsonNode> httpResponse = Unirest
+                .post(urlPrincipal + "?infinity=scrolling")
+                .field("action", "infinite_scroll")
+                .field("page", String.valueOf(pagina))
+                .field("order", "DESC")
+                .asJson();
+        String postflairs = httpResponse.getBody().getObject().get("postflair").toString();
+        return List.copyOf(new JSONObject(postflairs).keySet());
+    }
+
 	
 	
 	
@@ -83,13 +110,10 @@ public class Noticia {
 	public String toString() {
 		return "Noticia [url="+url+", titulo=" + titulo + ", subtitulo=" + subtitulo + ", autor=" + autor
 				+ ", dataPublicacao=" + dataPublicacao + ", conteudo=" + conteudo + "]";
-	}	
-	
-
+	}
 	public Noticia() {
 		super();
 	}	
-
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
