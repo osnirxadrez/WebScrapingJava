@@ -1,0 +1,1 @@
+Desafio proposto para coletar dados de um site de noticias financeira usando Java. Foi utilizada a biblioteca Jsoup para retirada dos dados e Unirest para fazer POST na pagina.
